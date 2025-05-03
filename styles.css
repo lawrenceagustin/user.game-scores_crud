@@ -1,0 +1,96 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #121212; /* Deep gray background */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #e0e0e0;
+  padding: 40px 20px;
+}
+
+/* Grid wrapper for cards */
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 24px;
+  max-width: 1400px;
+  margin: auto;
+}
+
+/* Card style */
+.recents_container {
+  background-color: #1e1e1e; /* Dark gray card background */
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.recents_container:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Typography */
+h1 {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #fdd835; /* Dark yellow */
+  margin-bottom: 10px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+h2 {
+  font-size: 1.1em;
+  color: #64b5f6; /* Soft blue */
+  margin-bottom: 10px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+h4 {
+  font-size: 0.95em;
+  color: #b0bec5; /* Light gray */
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #292929;
+}
+
+/* Specific fields */
+.recents_container h4:nth-of-type(1) {
+  color: #90a4ae; /* Medium gray for gender */
+  font-style: italic;
+}
+
+.recents_container h4:nth-of-type(2) {
+  color: #4fc3f7; /* Game name in bright blue */
+  font-weight: bold;
+}
+
+.recents_container h4:nth-of-type(3) {
+  font-style: italic;
+  color: #cfd8dc; /* Review in soft gray */
+}
+
+.recents_container h4:nth-of-type(4) {
+  color: #fdd835; /* Rating in strong yellow */
+  font-weight: bold;
+}
+
+/* Responsive layout */
+@media (max-width: 1200px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
