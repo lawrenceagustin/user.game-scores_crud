@@ -30,6 +30,69 @@ if (isset($_POST['insertNewUserBtn'])) {
 	}
 }
 
+if (isset($_POST['action']) && $_POST['action'] === 'submitReview') {
+	$email = trim($_POST['email']);
+	$gender = trim($_POST['gender']);
+	$game = trim($_POST['game']);
+	$user_review = trim($_POST['user_review']);
+	$rating = trim($_POST['rating']);
+
+	if (!empty($email) && !empty($gender) && !empty($game) && !empty($user_review) && !empty($rating)) {
+			$data = [
+					'email' => $email,
+					'gender' => $gender,
+					'game' => $game,
+					'user_review' => $user_review,
+					'rating' => $rating
+			];
+
+			$result = insertReview($data, $pdo);
+
+			if ($result) {
+					echo json_encode(['status' => 'success', 'message' => 'Review added successfully!']);
+			} else {
+					echo json_encode(['status' => 'error', 'message' => 'Error adding review!']);
+			}
+	} else {
+			echo json_encode(['status' => 'error', 'message' => 'All fields are required!']);
+	}
+	exit();
+}
+
+if (isset($_POST['action']) && $_POST['action'] === 'delete') {
+	$reviewId = $_POST['review_id'];
+	$username = $_SESSION['username'];
+
+	if (!$username) {
+		echo 'error';
+		exit;
+	}
+	$result = deleteReview($reviewId, $username, $pdo);
+	echo $result ? 'success' : 'error';
+	exit;
+}
+
+if (isset($_POST['action']) && $_POST['action'] === 'update') {
+	$data = [
+		'id' => $_POST['id'],
+		'email' => trim($_POST['email']),
+		'gender' => trim($_POST['gender']),
+		'game' => trim($_POST['game']),
+		'user_review' => trim($_POST['user_review']),
+		'rating' => trim($_POST['rating'])
+	];
+
+	$userId = $_SESSION['username'];
+
+	if ($userId && !empty($data['id'])) {
+		$result = updateReview($data, $userId, $pdo);
+		echo $result ? 'success' : 'error';
+	} else {
+		echo 'error';
+	}
+	exit;
+}
+
 
 if (isset($_POST['loginUserBtn'])) {
 	$username = trim($_POST['username']);
@@ -63,10 +126,10 @@ if (isset($_POST['loginUserBtn'])) {
 
 }
 
-if (isset($_GET['logoutUserBtn'])) {
+if (isset($_POST['logoutUserBtn'])) {
 	unset($_SESSION['user_id']);
 	unset($_SESSION['username']);
 	header("Location: ../login.php");
+	exit();
 }
-
 ?>

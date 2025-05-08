@@ -2,26 +2,43 @@
 require_once 'dbConfig.php';
 
 function getRecentUsers($pdo) {
-	$sql = "SELECT * FROM user_game_scores 
-			ORDER BY id DESC LIMIT 6";
+	$sql = "SELECT 
+				user_game_scores.*, 
+				user_accounts.username AS created_by_username, 
+				user_accounts.username AS updated_by_username
+			FROM user_game_scores
+			LEFT JOIN user_accounts ON user_game_scores.created_by = user_accounts.username
+			LEFT JOIN user_accounts AS updater ON user_game_scores.updated_by = updater.username
+			WHERE user_game_scores.deleted_at IS NULL
+			ORDER BY user_game_scores.id DESC
+			LIMIT 6";
+
 	$stmt = $pdo->prepare($sql);
 	$stmt->execute();
-	return $stmt->fetchAll();
-}
+	return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}	
 
-function insertAReview($pdo, $first_name, $last_name, $email, $gender) {
-	$sql = "INSERT INTO user_game_scores (first_name,last_name,email,gender) VALUES(?,?,?,?)";
+function getReviewsByUser($userId, $pdo) {
+	$sql = "SELECT 
+	            user_game_scores.*, 
+	            user_accounts.username AS created_by_username,
+	            updater_accounts.username AS updated_by_username
+	        FROM user_game_scores
+	        JOIN user_accounts ON user_game_scores.created_by = user_accounts.username
+	        LEFT JOIN user_accounts AS updater_accounts ON user_game_scores.updated_by = updater_accounts.username
+	        WHERE user_game_scores.created_by = :username
+	          AND user_game_scores.deleted_at IS NULL
+	        ORDER BY user_game_scores.created_at DESC";
+
 	$stmt = $pdo->prepare($sql);
-	return $stmt->execute([$first_name, $last_name, $email, $gender]);
+	$stmt->bindParam(':username', $userId, PDO::PARAM_STR);
+	$stmt->execute();
+
+	return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function searchAReview($pdo, $keyword) {
-	$sql = "SELECT * FROM user_game_scores WHERE CONCAT(first_name,last_name,email,gender) LIKE ?";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute(["%".$keyword."%"]);
-	return $stmt->fetchAll();
-}
 
+//User Entity
 function checkIfUserExists($pdo, $username) {
 	$response = array();
 	$sql = "SELECT * FROM user_accounts WHERE username = ?";
@@ -49,7 +66,6 @@ function checkIfUserExists($pdo, $username) {
 	}
 
 	return $response;
-
 }
 
 function insertNewUser($pdo, $username, $first_name, $last_name, $password) {
@@ -57,7 +73,6 @@ function insertNewUser($pdo, $username, $first_name, $last_name, $password) {
 	$checkIfUserExists = checkIfUserExists($pdo, $username); 
 
 	if (!$checkIfUserExists['result']) {
-
 		$sql = "INSERT INTO user_accounts (username, first_name, last_name, password) 
 		VALUES (?,?,?,?)";
 
@@ -69,7 +84,6 @@ function insertNewUser($pdo, $username, $first_name, $last_name, $password) {
 				"message" => "User successfully inserted!"
 			);
 		}
-
 		else {
 			$response = array(
 				"status" => "400",
@@ -77,7 +91,6 @@ function insertNewUser($pdo, $username, $first_name, $last_name, $password) {
 			);
 		}
 	}
-
 	else {
 		$response = array(
 			"status" => "400",
@@ -88,6 +101,7 @@ function insertNewUser($pdo, $username, $first_name, $last_name, $password) {
 	return $response;
 }
 
+//End of User Entity
 function getAllUsers($pdo) {
 	$sql = "SELECT * FROM user_accounts";
 	$stmt = $pdo->prepare($sql);
@@ -97,7 +111,6 @@ function getAllUsers($pdo) {
 		return $stmt->fetchAll();
 	}
 }
-
 function getUserByID($pdo, $username) {
 	$sql = "SELECT * FROM user_accounts WHERE username = ?";
 	$stmt = $pdo->prepare($sql);
@@ -108,6 +121,50 @@ function getUserByID($pdo, $username) {
 	}
 }
 
+//CRUD
+function insertReview($data, $pdo) {
+	if (isset($_SESSION['username'])) {
+			$username = $_SESSION['username'];
+	} else {
+			return false;
+	}
+	$sql = "INSERT INTO user_game_scores (username, email, gender, game, user_review, rating, created_by) 
+					VALUES (?, ?, ?, ?, ?, ?, ?)";
+	$stmt = $pdo->prepare($sql);
+	$result = $stmt->execute([
+			$username,
+			$data['email'],
+			$data['gender'],
+			$data['game'],
+			$data['user_review'],
+			$data['rating'],
+			$username
+	]);
+	return $result;
+}
 
+function updateReview($data, $userId, $pdo) {
+	$sql = "UPDATE user_game_scores 
+	        SET email = ?, gender = ?, game = ?, user_review = ?, rating = ?, updated_by = ?, updated_at = NOW()
+	        WHERE id = ?";
+	$stmt = $pdo->prepare($sql);
+	return $stmt->execute([
+		$data['email'],
+		$data['gender'],
+		$data['game'],
+		$data['user_review'],
+		$data['rating'],
+		$userId,
+		$data['id']
+	]);
+}
 
+function deleteReview($id, $username, $pdo) {
+  $sql = "DELETE FROM user_game_scores 
+          WHERE id = ? AND created_by = ?";
+  $stmt = $pdo->prepare($sql);
+  $result = $stmt->execute([$id, $username]);
+
+  return $result;
+}
 ?>

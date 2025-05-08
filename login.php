@@ -26,6 +26,7 @@ require_once 'core/handleForms.php';
     ?>
 
     <form action="core/handleForms.php" method="POST" class="space-y-4">
+      <input type="hidden" name="action" value="login">
       <div>
         <label class="block mb-1 text-blue-300">Username</label>
         <input type="text" name="username" class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-white" required>
